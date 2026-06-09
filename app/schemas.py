@@ -7,7 +7,7 @@ class ExpenseCreate(BaseModel):
     catergory: str = Field(min_length=3, max_length=20)
     description: Optional[str] = Field(default=None, max_length=100)
     date: date
-    created_at: datetime = Field(default_factory==datetime.now())   
+    created_at: datetime = Field(default_factory=datetime.now())   
 
 class ExpenseUpdate(BaseModel):
     amount: Optional[int]
