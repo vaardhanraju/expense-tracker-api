@@ -38,3 +38,22 @@ def create_expense(payload: ExpenseCreate):
     next_id += 1
     expenses.append(new_expense)
     return new_expense
+
+@router.put("/{expense_id}", response_model=ExpenseOut)
+def update_expense(expense_id: int, payload:ExpenseUpdate):
+    """Update an expense by ID."""
+    data = expenses
+    for index, expense in enumerate(data):
+        if expense['id'] == expense_id:
+            update_expense = expense
+            if payload.amount is not None:
+                update_expense['amount'] = payload.amount
+            if payload.catergory is not None:
+                update_expense['category'] = payload.catergory
+            if payload.description is not None:
+                update_expense['description'] = payload.description
+            if payload.date is not None:
+                update_expense['date'] = payload.date
+            data[index] = update_expense
+            return update_expense
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

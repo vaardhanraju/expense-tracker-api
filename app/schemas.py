@@ -10,7 +10,7 @@ class ExpenseCreate(BaseModel):
 
 class ExpenseUpdate(BaseModel):
     amount: Optional[float]
-    catergory: Optional[str] = Field(min_length=3, max_length=20)
+    catergory: Optional[str] = Field(default=None, max_length=20)
     description: Optional[str] = Field(default=None, max_length=100)
     date: Optional[datetime]
 
