@@ -3,23 +3,23 @@ from typing import Optional
 from datetime import datetime, date
 
 class ExpenseCreate(BaseModel):
-    amount: int
-    catergory: str = Field(min_length=3, max_length=20)
+    amount: float = Field(gt=0)
+    category: str = Field(min_length=3, max_length=20)
     description: Optional[str] = Field(default=None, max_length=100)
-    date: date
-    created_at: datetime = Field(default_factory=datetime.now())   
+    date: date  
 
 class ExpenseUpdate(BaseModel):
-    amount: Optional[int]
+    amount: Optional[float]
     catergory: Optional[str] = Field(min_length=3, max_length=20)
     description: Optional[str] = Field(default=None, max_length=100)
     date: Optional[datetime]
 
 class ExpenseOut(BaseModel):
-    id: str
-    amount: int
+    id: int
+    amount: float
     category: str
     description: str
     date: date
+    created_at: datetime
     
 
