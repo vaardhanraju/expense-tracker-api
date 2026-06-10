@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from app.schemas import ExpenseCreate, ExpenseOut, ExpenseUpdate, ExpenseDailySummary
+from app.schemas import ExpenseCreate, ExpenseOut, ExpenseUpdate, ExpenseDailySummary, ExpenseMonthlySummary, CategorySummary
 from datetime import datetime, date
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
@@ -38,6 +38,28 @@ def create_expense(payload: ExpenseCreate):
     next_id += 1
     expenses.append(new_expense)
     return new_expense
+
+@router.post("/bulk", response_model=list[ExpenseOut])
+def create_expenses(payload: list[ExpenseCreate]):
+    """Create multiple expenses in a single request."""
+    global next_id
+    created_expenses = []
+
+    for expense in payload:
+        new_expense = {
+            "id": next_id,
+            "amount": expense.amount,
+            "category": expense.category,
+            "description": expense.description,
+            "date": expense.date,
+            "created_at": datetime.now()
+        }
+
+        next_id += 1
+        expenses.append(new_expense)
+        created_expenses.append(new_expense)
+
+    return created_expenses
 
 @router.put("/{expense_id}", response_model=ExpenseOut)
 def update_expense(expense_id: int, payload:ExpenseUpdate):
