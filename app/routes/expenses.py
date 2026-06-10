@@ -126,3 +126,47 @@ def get_summary_by_day(date: date):
         total_amount=total_spent,
         category_breakdown=category_breakdown
     )
+
+@router.get("/summary/month", response_model=ExpenseMonthlySummary)
+def get_summary_by_month(date: str):
+    data = expenses
+    total_spent = 0
+    category_spent = {}
+    category_breakdown = {}
+    highest_spent_amount = 0
+    highest_spending_category = None
+
+    for expense in data:
+        date_str_converted = str(expense['date'])
+        if date == date_str_converted[:7]:
+            
+            amount = expense['amount']
+            category = expense['category']
+
+            total_spent += amount
+            category_spent[expense['category']] =  (
+                category_spent.get(category, 0) + amount
+            )
+
+    if total_spent == 0:
+        return ExpenseMonthlySummary(
+        month=date,
+        total_amount=0,
+        category_breakdown={},
+        highest_spending_category=None
+    )
+
+    for category, amt in category_spent.items():
+        category_breakdown[category] = {
+            "amount": amt, "percentage": f"{(amt/total_spent) * 100:.2f}" 
+        }
+        if amt > highest_spent_amount:
+            highest_spent_amount = amt
+            highest_spending_category = category
+
+    return ExpenseMonthlySummary(
+        month=date,
+        total_amount=total_spent,
+        category_breakdown=category_breakdown,
+        highest_spending_category=highest_spending_category
+    )

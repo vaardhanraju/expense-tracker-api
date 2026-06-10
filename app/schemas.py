@@ -27,3 +27,12 @@ class ExpenseDailySummary(BaseModel):
     total_amount: float
     category_breakdown: dict[str, float]
 
+class CategorySummary(BaseModel):
+    amount: float
+    percentage: float
+
+class ExpenseMonthlySummary(BaseModel):
+    month: str
+    total_amount: float
+    category_breakdown: dict[str, CategorySummary]
+    highest_spending_category: str | None
