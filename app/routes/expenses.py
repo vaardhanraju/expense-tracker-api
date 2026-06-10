@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
-from app.schemas import ExpenseCreate, ExpenseOut, ExpenseUpdate
-from datetime import datetime
+from app.schemas import ExpenseCreate, ExpenseOut, ExpenseUpdate, ExpenseDailySummary
+from datetime import datetime, date
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
@@ -79,3 +79,28 @@ def get_by_category(category: str):
     if len(category_expenses) > 0:
         return category_expenses
     return category_expenses
+
+@router.get("/summary/day", response_model=ExpenseDailySummary)
+def get_summary_by_day(date: date):
+    """Retrieve summary by Day."""
+    data = expenses
+    total_spent = 0
+    category_breakdown = {}
+    
+    for expense in data:
+        if expense['date'] != date:
+            continue
+
+        amount = expense['amount']
+        category = expense['category']
+
+        total_spent += amount
+        category_breakdown[expense['category']] =  (
+            category_breakdown.get(category, 0) + amount
+        )
+
+    return ExpenseDailySummary(
+        date=date, 
+        total_amount=total_spent,
+        category_breakdown=category_breakdown
+    )

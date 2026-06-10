@@ -22,4 +22,8 @@ class ExpenseOut(BaseModel):
     date: date
     created_at: datetime
     
+class ExpenseDailySummary(BaseModel):
+    date: date
+    total_amount: float
+    category_breakdown: dict[str, float]
 
