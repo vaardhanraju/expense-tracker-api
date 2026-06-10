@@ -174,8 +174,8 @@ def update_expense(expense_id: int, payload: ExpenseUpdate):
             update_expense = expense
             if payload.amount is not None:
                 update_expense['amount'] = payload.amount
-            if payload.catergory is not None:
-                update_expense['category'] = payload.catergory
+            if payload.category is not None:
+                update_expense['category'] = payload.category
             if payload.description is not None:
                 update_expense['description'] = payload.description
             if payload.date is not None:

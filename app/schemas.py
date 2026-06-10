@@ -10,15 +10,15 @@ class ExpenseCreate(BaseModel):
 
 class ExpenseUpdate(BaseModel):
     amount: Optional[float]
-    catergory: Optional[str] = Field(default=None, max_length=20)
+    category: Optional[str] = Field(default=None, max_length=20)
     description: Optional[str] = Field(default=None, max_length=100)
-    date: Optional[datetime]
+    date: Optional[date]
 
 class ExpenseOut(BaseModel):
     id: int
     amount: float
     category: str
-    description: str
+    description: Optional[str]
     date: date
     created_at: datetime
     
