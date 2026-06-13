@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Query
 from sqlmodel import select
+from sqlalchemy import func, extract
 from app.schemas import ExpenseCreate, ExpenseOut, ExpenseUpdate, ExpenseDailySummary, ExpenseMonthlySummary, CategoryOut, CategoryCreate
 from datetime import datetime, date
 from app.db.database import SessionDep
@@ -102,26 +103,27 @@ def get_summary_by_day(date: date, session: SessionDep):
 
 
 @router.get("/summary/month", response_model=ExpenseMonthlySummary)
-def get_summary_by_month(date: str):
+def get_summary_by_month(date: str, session: SessionDep):
     """Retrieve summary by Day."""
-    data = expenses
-    total_spent = 0
+
+    year, month = date.split('-') 
+    expenses = session.exec(
+        select(Expense).where(
+            (extract('year', Expense.date) == int(year)) &
+            (extract('month', Expense.date) == int(month))
+        )
+    ).all()
+
+    total_spent = sum(expense.amount for expense in expenses)
     category_spent = {}
     category_breakdown = {}
     highest_spent_amount = 0
     highest_spending_category = None
 
-    for expense in data:
-        date_str_converted = str(expense['date'])
-        if date == date_str_converted[:7]:
-
-            amount = expense['amount']
-            category = expense['category']
-
-            total_spent += amount
-            category_spent[expense['category']] = (
-                category_spent.get(category, 0) + amount
-            )
+    for expense in expenses:
+        category = session.get(Category, expense.category_id)
+        category_name = category.name
+        category_spent[category_name] = category_spent.get(category_name, 0) + expense.amount
 
     if total_spent == 0:
         return ExpenseMonthlySummary(
