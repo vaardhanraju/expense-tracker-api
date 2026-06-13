@@ -176,6 +176,11 @@ def update_expense(expense_id: int, payload: ExpenseUpdate, session: SessionDep)
     if not expense_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID not found")
     
+    if payload.category_id:
+        category = session.get(Category, payload.category_id)
+        if not category:
+            raise HTTPException(status_code=404, detail="Category not found")
+    
     expense_data = payload.model_dump(exclude_unset=True)
     expense_db.sqlmodel_update(expense_data)
     session.add(expense_db)
@@ -184,7 +189,7 @@ def update_expense(expense_id: int, payload: ExpenseUpdate, session: SessionDep)
     return expense_db
 
 
-@router.delete("/{expense_id}")
+@router.delete("/{expense_id}", response_model=ExpenseOut)
 def delete_expense(expense_id: int, session: SessionDep):
     """Delete specific expense by ID."""
     expense = session.get(Expense, expense_id)
@@ -192,7 +197,7 @@ def delete_expense(expense_id: int, session: SessionDep):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID not found")
     session.delete(expense)
     session.commit()
-    return {"ok": True}
+    return expense
 
 
 @router.post("/categories", response_model=CategoryOut)
