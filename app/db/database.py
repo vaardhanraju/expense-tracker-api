@@ -5,7 +5,7 @@ from sqlmodel import Field, SQLModel, Session, create_engine, select
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///../data/{sqlite_file_name}"
 
-connect_args = {"checck_same_thread": False}
+connect_args = {"check_same_thread": False}
 engine = create_engine(sqlite_url, connect_args=connect_args)
 
 def create_db_and_tables():
