@@ -36,3 +36,10 @@ class ExpenseMonthlySummary(BaseModel):
     total_amount: float
     category_breakdown: dict[str, CategorySummary]
     highest_spending_category: str | None
+
+class CategoryCreate(BaseModel):
+    name: str = Field(min_length=3, max_length=50)
+
+class CategoryOut(BaseModel):
+    id: int
+    name: str

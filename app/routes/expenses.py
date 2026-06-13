@@ -1,6 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
-from app.schemas import ExpenseCreate, ExpenseOut, ExpenseUpdate, ExpenseDailySummary, ExpenseMonthlySummary, CategorySummary
+from sqlmodel import select
+from app.schemas import ExpenseCreate, ExpenseOut, ExpenseUpdate, ExpenseDailySummary, ExpenseMonthlySummary, CategoryOut, CategoryCreate
 from datetime import datetime, date
+from db.database import SessionDep
+from db.models import Category, Expense
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
@@ -194,3 +197,15 @@ def delete_expense(expense_id: int):
             data.pop(index)
             return expense
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+
+@router.post("/categories", response_model=CategoryOut)
+def create_category(category: CategoryCreate, session:SessionDep):
+    existing = session.exec(select(Category)).filter(Category.name == category.name).first()
+    if existing:
+        return existing
+    db_category = Category(name = category.name)
+    session.add(db_category)
+    session.commit()
+    session.refresh(db_category)
+    return db_category
