@@ -1,39 +1,40 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Query
 from sqlmodel import select
 from app.schemas import ExpenseCreate, ExpenseOut, ExpenseUpdate, ExpenseDailySummary, ExpenseMonthlySummary, CategoryOut, CategoryCreate
 from datetime import datetime, date
-from db.database import SessionDep
-from db.models import Category, Expense
+from app.db.database import SessionDep
+from app.db.models import Category, Expense
+from typing import Annotated
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
-next_id = 1
-
-expenses = []
-
-
 @router.get("/", response_model=list[ExpenseOut])
-def get_expenses():
+def get_expenses(
+    session: SessionDep, offset: int = 0, limit: Annotated[int, Query(le=100)] = 100
+):
     """Retrive all expenses."""
-    data = expenses
-    return data
+    expenses = session.exec(select(Expense).offset(offset).limit(limit)).all()
+    return expenses
 
 
 @router.post("/", response_model=ExpenseOut)
-def create_expense(payload: ExpenseCreate):
+def create_expense(payload: ExpenseCreate, session: SessionDep):
     """Create an expense."""
-    global next_id
-    new_expense = {
-        "id": next_id,
-        "amount": payload.amount,
-        "category": payload.category,
-        "description": payload.description,
-        "date": payload.date,
-        "created_at": datetime.now()
-    }
-    next_id += 1
-    expenses.append(new_expense)
-    return new_expense
+    category = session.get(Category, payload.category_id)
+
+    if not category:
+         raise HTTPException(status_code=404, detail="Category not found")
+    
+    db_expense = Expense(
+        amount=payload.amount,
+        category_id=payload.category_id,
+        description=payload.description,
+        date=payload.date
+    )
+    session.add(db_expense)
+    session.commit()
+    session.refresh(db_expense)
+    return db_expense
 
 
 @router.post("/bulk", response_model=list[ExpenseOut])
@@ -201,7 +202,7 @@ def delete_expense(expense_id: int):
 
 @router.post("/categories", response_model=CategoryOut)
 def create_category(category: CategoryCreate, session:SessionDep):
-    existing = session.exec(select(Category)).filter(Category.name == category.name).first()
+    existing = session.exec(select(Category).where(Category.name == category.name)).first()
     if existing:
         return existing
     db_category = Category(name = category.name)

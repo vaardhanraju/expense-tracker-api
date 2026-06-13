@@ -17,7 +17,7 @@ class ExpenseUpdate(BaseModel):
 class ExpenseOut(BaseModel):
     id: int
     amount: float
-    category: int
+    category_id: int
     description: Optional[str]
     date: date
     created_at: datetime
