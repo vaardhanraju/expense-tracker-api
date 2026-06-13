@@ -39,26 +39,35 @@ def create_expense(payload: ExpenseCreate, session: SessionDep):
 
 
 @router.post("/bulk", response_model=list[ExpenseOut])
-def create_expenses(payload: list[ExpenseCreate]):
+def create_expenses(payload: list[ExpenseCreate], session: SessionDep):
     """Create multiple expenses in a single request."""
-    global next_id
     created_expenses = []
 
-    for expense in payload:
-        new_expense = {
-            "id": next_id,
-            "amount": expense.amount,
-            "category": expense.category,
-            "description": expense.description,
-            "date": expense.date,
-            "created_at": datetime.now()
-        }
+    try: 
+        for expense_data in payload:
+            category = session.get(Category, expense_data.category_id)
+            if not category:
+                raise HTTPException(status_code=404, detail=f"Category {expense_data.category_id} not found")
+            
+            db_expense = Expense(
+                amount=expense_data.amount,
+                category_id=expense_data.category_id,
+                description=expense_data.description,
+                date=expense_data.date
+            )
+            session.add(db_expense)
+            created_expenses.append(db_expense)
 
-        next_id += 1
-        expenses.append(new_expense)
-        created_expenses.append(new_expense)
+        session.commit()
+        
+        for expense in created_expenses:
+            session.refresh(expense)
 
-    return created_expenses
+        return created_expenses
+
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/range", response_model=list[ExpenseOut])
