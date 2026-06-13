@@ -213,21 +213,17 @@ def create_categories(payload: list[CategoryCreate], session: SessionDep):
 
     try:
         for category_data in payload:
-            # Check if category already exists
             existing = session.exec(select(Category).where(Category.name == category_data.name)).first()
             
             if existing:
                 created_categories.append(existing)
             else:
-                # Create new category
                 db_category = Category(name=category_data.name)
                 session.add(db_category)
                 created_categories.append(db_category)
 
-        # Commit all at once
         session.commit()
         
-        # Refresh all
         for category in created_categories:
             session.refresh(category)
 
