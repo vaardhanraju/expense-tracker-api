@@ -73,16 +73,14 @@ def get_expense_range(start: str, end: str):
     return range_expenses
 
 
-@router.get("/category/{category}", response_model=list[ExpenseOut])
-def get_by_category(category: str):
+@router.get("/category/{category_name}", response_model=list[ExpenseOut])
+def get_by_category(category_name: str, session: SessionDep):
     """Retrieve expenses by Caterogry."""
-    data = expenses
-    category_expenses = []
-    for index, expense in enumerate(data):
-        if expense['category'] == category:
-            category_expenses.append(data[index])
-    if len(category_expenses) > 0:
-        return category_expenses
+    category = session.exec(select(Category).where(Category.name == category_name)).first()
+    if not category:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+    
+    category_expenses = session.exec(select(Expense).where(Expense.category_id == category.id)).all()
     return category_expenses
 
 
