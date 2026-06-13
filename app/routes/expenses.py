@@ -160,13 +160,13 @@ def get_summary_by_month(date: str):
 
 
 @router.get("/{expense_id}", response_model=ExpenseOut)
-def get_expense(expense_id: int):
+def get_expense(expense_id: int, session: SessionDep):
     """Retrieve specific expense by ID."""
-    data = expenses
-    for index, expense in enumerate(data):
-        if expense['id'] == expense_id:
-            return data[index]
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    db_expense = session.get(Expense, expense_id)
+    if not db_expense:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID not found")
+    
+    return db_expense
 
 
 @router.put("/{expense_id}", response_model=ExpenseOut)
