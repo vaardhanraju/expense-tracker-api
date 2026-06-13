@@ -25,16 +25,16 @@ def create_expense(payload: ExpenseCreate, session: SessionDep):
     if not category:
          raise HTTPException(status_code=404, detail="Category not found")
     
-    db_expense = Expense(
+    expense_db = Expense(
         amount=payload.amount,
         category_id=payload.category_id,
         description=payload.description,
         date=payload.date
     )
-    session.add(db_expense)
+    session.add(expense_db)
     session.commit()
-    session.refresh(db_expense)
-    return db_expense
+    session.refresh(expense_db)
+    return expense_db
 
 
 @router.post("/bulk", response_model=list[ExpenseOut])
@@ -162,31 +162,26 @@ def get_summary_by_month(date: str):
 @router.get("/{expense_id}", response_model=ExpenseOut)
 def get_expense(expense_id: int, session: SessionDep):
     """Retrieve specific expense by ID."""
-    db_expense = session.get(Expense, expense_id)
-    if not db_expense:
+    expense_db = session.get(Expense, expense_id)
+    if not expense_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID not found")
     
-    return db_expense
+    return expense_db
 
 
 @router.put("/{expense_id}", response_model=ExpenseOut)
-def update_expense(expense_id: int, payload: ExpenseUpdate):
+def update_expense(expense_id: int, payload: ExpenseUpdate, session: SessionDep):
     """Update an expense by ID."""
-    data = expenses
-    for index, expense in enumerate(data):
-        if expense['id'] == expense_id:
-            update_expense = expense
-            if payload.amount is not None:
-                update_expense['amount'] = payload.amount
-            if payload.category is not None:
-                update_expense['category'] = payload.category
-            if payload.description is not None:
-                update_expense['description'] = payload.description
-            if payload.date is not None:
-                update_expense['date'] = payload.date
-            data[index] = update_expense
-            return update_expense
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    expense_db = session.get(Expense, expense_id)
+    if not expense_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID not found")
+    
+    expense_data = payload.model_dump(exclude_unset=True)
+    expense_db.sqlmodel_update(expense_data)
+    session.add(expense_db)
+    session.commit()
+    session.refresh(expense_db)
+    return expense_db
 
 
 @router.delete("/{expense_id}")
