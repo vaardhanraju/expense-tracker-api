@@ -189,15 +189,15 @@ def update_expense(expense_id: int, payload: ExpenseUpdate):
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
-@router.delete("/{expense_id}", response_model=ExpenseOut)
-def delete_expense(expense_id: int):
-    """Retrieve specific expense by ID."""
-    data = expenses
-    for index, expense in enumerate(data):
-        if expense['id'] == expense_id:
-            data.pop(index)
-            return expense
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+@router.delete("/{expense_id}")
+def delete_expense(expense_id: int, session: SessionDep):
+    """Delete specific expense by ID."""
+    expense = session.get(Expense, expense_id)
+    if not expense:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID not found")
+    session.delete(expense)
+    session.commit()
+    return {"ok": True}
 
 
 @router.post("/categories", response_model=CategoryOut)
