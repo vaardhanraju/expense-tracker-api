@@ -64,7 +64,7 @@ def create_expenses(payload: list[ExpenseCreate]):
 def get_expense_range(start: str, end: str, session: SessionDep):
     start_date = date.fromisoformat(start)
     end_date = date.fromisoformat(end)
-    range_expenses = session.exec(select(Expense).where(Expense.date.between(start_date, end_date)))
+    range_expenses = session.exec(select(Expense).where(Expense.date.between(start_date, end_date))).all()
 
     return range_expenses
 
@@ -81,23 +81,18 @@ def get_by_category(category_name: str, session: SessionDep):
 
 
 @router.get("/summary/day", response_model=ExpenseDailySummary)
-def get_summary_by_day(date: date):
+def get_summary_by_day(date: date, session: SessionDep):
     """Retrieve summary by Day."""
-    data = expenses
-    total_spent = 0
+
+    expenses = session.exec(select(Expense).where(Expense.date == date)).all()
+
+    total_spent = sum(expense.amount for expense in expenses)
     category_breakdown = {}
 
-    for expense in data:
-        if expense['date'] != date:
-            continue
-
-        amount = expense['amount']
-        category = expense['category']
-
-        total_spent += amount
-        category_breakdown[expense['category']] = (
-            category_breakdown.get(category, 0) + amount
-        )
+    for expense in expenses:
+        category = session.get(Category, expense.category_id)
+        category_name = category.name
+        category_breakdown[category_name] = category_breakdown.get(category_name, 0) + expense.amount
 
     return ExpenseDailySummary(
         date=date,
