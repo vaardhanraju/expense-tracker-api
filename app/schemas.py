@@ -4,20 +4,20 @@ from datetime import datetime, date
 
 class ExpenseCreate(BaseModel):
     amount: float = Field(gt=0)
-    category: str = Field(min_length=3, max_length=20)
+    category_id: int
     description: Optional[str] = Field(default=None, max_length=100)
     date: date  
 
 class ExpenseUpdate(BaseModel):
     amount: Optional[float]
-    category: Optional[str] = Field(default=None, max_length=20)
+    category: Optional[int] = None
     description: Optional[str] = Field(default=None, max_length=100)
     date: Optional[date]
 
 class ExpenseOut(BaseModel):
     id: int
     amount: float
-    category: str
+    category: int
     description: Optional[str]
     date: date
     created_at: datetime
