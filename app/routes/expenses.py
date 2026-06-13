@@ -61,14 +61,10 @@ def create_expenses(payload: list[ExpenseCreate]):
 
 
 @router.get("/range", response_model=list[ExpenseOut])
-def get_expense_range(start: str, end: str):
-    data = expenses
+def get_expense_range(start: str, end: str, session: SessionDep):
     start_date = date.fromisoformat(start)
     end_date = date.fromisoformat(end)
-    range_expenses = []
-    for expense in data:
-        if start_date <= expense['date'] <= end_date:
-            range_expenses.append(expense)
+    range_expenses = session.exec(select(Expense).where(Expense.date.between(start_date, end_date)))
 
     return range_expenses
 
